@@ -76,7 +76,7 @@ export function getMetricMetaInfo(metric) {
       getIcon() {
         return (
           <View>
-            <MaterialIcons name="bike" color="black" size={35} />
+            <MaterialCommunityIcons name="bike" color="black" size={32} />
           </View>
         );
       }
@@ -90,7 +90,7 @@ export function getMetricMetaInfo(metric) {
       getIcon() {
         return (
           <View>
-            <MaterialIcons name="swim" color="black" size={35} />
+            <MaterialCommunityIcons name="swim" color="black" size={35} />
           </View>
         );
       }
@@ -124,5 +124,6 @@ export function getMetricMetaInfo(metric) {
       }
     }
   };
-  return metric ? info[metric] : info;
+  console.log(`METRIC: ${metric}`);
+  return typeof metric == "undefined" ? info : info[metric];
 }
