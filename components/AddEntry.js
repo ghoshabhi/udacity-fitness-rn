@@ -1,8 +1,20 @@
 import React, { Component } from "react";
-import { View, Text } from "react-native";
-import { getMetricMetaInfo } from "../utils/helpers";
+import { View, Text, TouchableOpacity } from "react-native";
+import { getMetricMetaInfo, timeToString } from "../utils/helpers";
 import UdaciSlider from "./UdaciSlider";
 import UdaciStepper from "./UdaciStepper";
+import DateHeader from './DateHeader';
+import { Ionicons } from '@expo/vector-icons';
+import TextButton from './TextButton';
+import { submitEntry, removeEntry } from '../utils/api'
+
+function SubmitBtn ({ onPress }){
+  return (
+    <TouchableOpacity onPress={onPress}>
+      <Text>Submit</Text>
+    </TouchableOpacity>
+  );
+}
 
 export default class AddEntry extends Component {
   state = {
@@ -25,7 +37,7 @@ export default class AddEntry extends Component {
   };
 
   decrement = metric => {
-    this.setState(state => {
+  this.setState(state => {
       const count = state[metric] - getMetricMetaInfo(metric).step;
       return {
         ...state,
@@ -39,32 +51,70 @@ export default class AddEntry extends Component {
       [metric]: value
     });
   };
+
+  submit = () => {
+    const key = timeToString();
+    const entry = this.state;
+    this.setState({
+      run: 0,
+      bike: 0,
+      swim: 0,
+      eat: 0,
+      sleep: 0
+    })
+    submitEntry({ key, entry});
+  }
+
+  reset = () => {
+    const key = timeToString();
+    removeEntry(key);
+  }
+
   render() {
-    const meta = getMetricMetaInfo();
+    const metaInfo = getMetricMetaInfo();
+
+    if(this.props.alreadyLogged) {
+      return (
+        <View>
+          <Ionicons
+            name="ios-happy-outline"
+            size={100}
+          />
+          <Text>You already logged in your informatoin today!</Text>
+          <TextButton onPress={this.reset}>
+            Reset
+          </TextButton>
+        </View>
+      )
+    }
+
     return (
       <View>
-        {Object.keys(meta).map(key => {
-          const { getIcon, type, ...rest } = meta[key];
-          const value = this.state[key];
-          console.log(key);
+        <DateHeader date={new Date().toLocaleDateString()} />
+        <Text>{JSON.stringify(this.state)}</Text>
+        {Object.keys(metaInfo).map((key) => {
+          const { getIcon, type, ...rest } = metaInfo[key]
+          const value = this.state[key]
+
           return (
             <View key={key}>
               {getIcon()}
-              {type === "slider"
-                ? <UdaciSlider 
+              {type === 'slider'
+                ? <UdaciSlider
                     value={value}
-                    onChange={value => this.slide(key, value)}
+                    onChange={(value) => this.slide(key, value)}
                     {...rest}
                   />
-                : <UdaciStepper 
+                : <UdaciStepper
                     value={value}
-                    onIncrement={()=> this.increment(key)}
-                    onDecrement={()=> this.decrement(key)}
+                    onIncrement={() => this.increment(key)}
+                    onDecrement={() => this.decrement(key)}
                     {...rest}
                   />}
             </View>
           );
         })}
+        <SubmitBtn onPress={this.submit} />
       </View>
     );
   }
